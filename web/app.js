@@ -49,7 +49,7 @@ fetch('/api')
   .then(data => {
     chart.setOption({
       title: {
-        text: 'Daiquiri Databases',
+        text: 'PostgreSQL Databases',
         left: 'center'
       },
       tooltip: {
@@ -87,7 +87,7 @@ fetch('/api')
         },
         levels: getLevelOption(),
         type: 'treemap',
-        leafDepth: 2,
+        leafDepth: 1,
         data: data
       }]
     });

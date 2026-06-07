@@ -32,7 +32,7 @@ func Collect(conf config.Config) error {
 		hosts = append(hosts, *hostDatabases)
 	}
 
-	data, err := json.MarshalIndent(hosts, "", "  ")
+	data, err := json.Marshal(hosts)
 	if err != nil {
 		return fmt.Errorf("failed to convert fetched metadata into json format: %v", err)
 	}
@@ -90,8 +90,12 @@ func collectHost(hostConf config.HostConfig) (*model.HostMetadata, error) {
 			} else {
 				databases[db_index].Schemas = make([]model.SchemaMetadata, len(schemaNames))
 				for i, schemaName := range schemaNames {
-					schemaMetadata, _ := adapter.GetSchemaMetadata(schemaName)
-					databases[db_index].Schemas[i] = *schemaMetadata
+					schemaMetadata, err := adapter.GetSchemaMetadata(schemaName)
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "schema '%s': %v", schemaName, err)
+					} else {
+						databases[db_index].Schemas[i] = *schemaMetadata
+					}
 				}
 			}
 		}

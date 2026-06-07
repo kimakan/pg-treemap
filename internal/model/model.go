@@ -21,6 +21,15 @@ type SchemaMetadata struct {
 }
 
 type TableMetadata struct {
-	TableName string `db:"table_name" json:"name"`
-	Size      int64  `db:"table_size" json:"value"`
+	TableName    string        `db:"table_name" json:"name"`
+	Size         int64         `db:"table_size" json:"value"`
+	HeapSize     int64         `db:"heap_size"  json:"-"`
+	IndexesSize  int64         `db:"indexes_size" json:"-"`
+	StorageParts []StoragePart `db:"-"          json:"children,omitempty"`
+}
+
+type StoragePart struct {
+	Name     string        `db:"name" json:"name"`
+	Size     int64         `db:"size" json:"value"`
+	Children []StoragePart `db:"-"    json:"children,omitempty"`
 }
