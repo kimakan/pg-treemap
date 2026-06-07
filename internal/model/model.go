@@ -4,7 +4,7 @@ package model
 
 type HostMetadata struct {
 	Label     string             `json:"name"`
-	Size      int64             `json:"value"`
+	Size      int64              `json:"value"`
 	Databases []DatabaseMetadata `json:"children,omitempty"`
 }
 

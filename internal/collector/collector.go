@@ -76,7 +76,7 @@ func collectHost(hostConf config.HostConfig) (*model.HostMetadata, error) {
 	}
 
 	return &model.HostMetadata{
-		Label: fmt.Sprintf("%s:%s", hostConf.Host, hostConf.Port),
+		Label: hostConf.Label,
 		Size: hostTotalSize,
 		Databases: databases,
 	}, nil

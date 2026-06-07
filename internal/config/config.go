@@ -13,6 +13,7 @@ var DefaultConfigFile = "conf.json"
 var DefaultConfig = Config{
 	Hosts: []HostConfig{
 		{
+			Label:    "test_host",
 			Host:     "localhost",
 			Name:     "postgres",
 			Port:     "5432",
@@ -29,6 +30,7 @@ type Config struct {
 }
 
 type HostConfig struct {
+	Label    string `json:"label"`
 	Host     string `json:"host"`
 	Name     string `json:"name"`
 	Port     string `json:"port"`
