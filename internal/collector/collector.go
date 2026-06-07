@@ -4,21 +4,49 @@ package collector
 import (
 	"encoding/json"
 	"fmt"
-	"slices"
 	"os"
+	"slices"
 
 	"github.com/kimakan/pg-treemap/internal/config"
 	"github.com/kimakan/pg-treemap/internal/model"
 	"github.com/kimakan/pg-treemap/internal/pgadapter"
 )
 
-var ignoredDatabases =[]string{
+var ignoredDatabases = []string{
 	"postgres",
 	"template0",
 	"template1",
 	"template_postgis",
 }
 
+func Collect(conf config.Config) error {
+	hosts := make([]model.HostMetadata, 0)
+	fmt.Println("Collecting metadata...")
+	for _, host := range conf.Hosts {
+		hostDatabases, err := collectHost(host)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to collect from %s : %v\n", host.Label, err)
+			continue
+		}
+		fmt.Fprintf(os.Stdout, " - %v: %d database(s)\n", host.Label, len(hostDatabases.Databases))
+		hosts = append(hosts, *hostDatabases)
+	}
+
+	data, err := json.MarshalIndent(hosts, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to convert fetched metadata into json format: %v", err)
+	}
+
+	err = os.WriteFile("snapshot.json", data, 0o644)
+	if err != nil {
+		return fmt.Errorf("cannot write collected data into the snapshot: %v\n", err)
+	}
+	hostLabels := make([]string, 0)
+	for _, h := range hosts {
+		hostLabels = append(hostLabels, h.Label)
+	}
+	return nil
+}
 
 // collectHost collects the metadata (primarily sizes) of all databases
 func collectHost(hostConf config.HostConfig) (*model.HostMetadata, error) {
@@ -45,7 +73,7 @@ func collectHost(hostConf config.HostConfig) (*model.HostMetadata, error) {
 			fmt.Fprintf(os.Stderr, "WARNING: failed fetching metadata from the database: %s: %v\n", datname, err)
 		} else {
 			// ignore some basic/not interesting databases
-			if !slices.Contains(ignoredDatabases, newDatabase.DBname){
+			if !slices.Contains(ignoredDatabases, newDatabase.DBname) {
 				databases = append(databases, *newDatabase)
 			}
 		}
@@ -76,28 +104,8 @@ func collectHost(hostConf config.HostConfig) (*model.HostMetadata, error) {
 	}
 
 	return &model.HostMetadata{
-		Label: hostConf.Label,
-		Size: hostTotalSize,
+		Label:     hostConf.Label,
+		Size:      hostTotalSize,
 		Databases: databases,
 	}, nil
-}
-
-func Collect(conf config.Config) error {
-	hosts := make([]model.HostMetadata, 0)
-	for _, host := range conf.Hosts {
-		hostDatabases, _ := collectHost(host)
-		hosts = append(hosts, *hostDatabases)
-	}
-
-	data, err := json.MarshalIndent(hosts, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to convert fetched metadata into json format: %v", err)
-	}
-
-	err = os.WriteFile("snapshot.json", data, 0o644)
-	if err != nil {
-		return fmt.Errorf("cannot write collected data into the snapshot: %v\n", err)
-	}
-
-	return nil
 }

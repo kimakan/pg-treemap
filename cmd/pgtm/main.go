@@ -44,7 +44,6 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Failed to collect the data: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Fprintln(os.Stdout, "Successfully collected the metadata")
 		os.Exit(0)
 	}
 	if *serve {
